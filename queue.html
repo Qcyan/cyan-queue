@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <!-- <script>
+        //后退的队列
+        const historyQueue = new BlueQueuePipe({
+            methods: {
+                shift() {
+                    return this.queue.shift();
+                }
+            }
+        });
+
+        History.prototype.back = function () {
+            historyQueue.enqueue(`back`);
+            historyBack.call(this);
+        };
+
+        if (!historyQueue.isEmpty()) {
+        
+            historyQueue.useMethod('shift');
+        }
+    </script> -->
+
+    <script>
+        var aa = () => {
+
+        };
+
+        function bb() {
+
+        }
+        bb.apply(this, [() => {
+            return '3333'
+        }])
+
+
+
+        // 场景:
+        // 方法加入队列后，运行时，同步执行；
+        // 方法/值加入队列后，在没有操作取值
+
+        class cyanQueue {
+            constructor(opts) {
+                this.options = opts;
+                // 任务队列
+                this.taskQueue = [];
+                // 是否有任务函数在执行
+                this.flag = false;
+            }
+            enqueue(fn, args) {
+                this.taskQueue.push(fn)
+                // this.hook(this, this.options.enqueued, [this.taskQueue.push(obj)]);
+            }
+            dequeue() {
+                // 把第一个删除并返回
+                const dequeue = this.taskQueue.shift();
+                // this.hook(this, options.dequeued, [dequeue]);
+                console.log(dequeue)
+                return dequeue;
+            }
+            run() {
+                const opts = this.options;
+                if (this.isEmpty()) {
+                    console.log('end');
+                    return;
+                }
+                this.flag = false;
+                const dequeueVal = this.dequeue();
+                if (typeof dequeueVal === 'function') {
+                    dequeueVal.apply(this);
+                } else {
+                    return dequeueVal
+                    // this.hook(this, () => {}, [(() => {
+                    //     return dequeueVal
+                    // })()])
+
+                }
+
+                let argsTimer = () => {
+                    if (this.flag) { //控制队列函数同步          
+                        this.run();
+                    } else {
+                        setTimeout(argsTimer, 100);
+                    }
+                }
+
+                setTimeout(argsTimer, 100);
+                // while (!this.isEmpty()) {
+                //     const dequeue = this.dequeue();
+                //     //如果队列项是function，执行
+                //     this.hook(this, opts.running, [(() => {
+                //         if (typeof dequeue === 'function') {
+                //             return dequeue.apply(this);
+                //         }
+                //         return dequeue
+                //     })()]);
+                // }
+
+            }
+            isEmpty() {
+                return this.taskQueue.length === 0;
+            }
+            //执行function
+            hook(context, cb, args = []) {
+                console.log(cb, args)
+                if (typeof cb === 'function') {
+                    return cb.apply(context, args);
+                }
+                return cb;
+            }
+            useMethods(name, args) {
+                const opts = this.options;
+                if (!opts.setMethods) return;
+                opts.setMethods[name].call(this, args || '');
+
+                // return this.hook(this, opts.setMethods[name], args || [])
+            }
+        }
+
+
+
+        let cyanTask = new cyanQueue({
+            enqueued: function () {
+                console.log(`enqueued`);
+            },
+            running: function () {
+
+            },
+            setMethods: {
+                setStatus: function () {
+                    //同步标记
+                    this.flag = true
+                }
+            }
+        });
+
+
+        cyanTask.enqueue(() => {
+            setTimeout(() => {
+                console.log(4)
+                //执行同步
+                cyanTask.useMethods('setStatus')
+            }, 1000)
+        })
+        cyanTask.enqueue(() => {
+            setTimeout(function () {
+                console.log(3)
+                cyanTask.useMethods('setStatus')
+            }, 1000)
+        })
+        cyanTask.enqueue('cyan is girl')
+        cyanTask.run()
+    </script>
+
+
+</body>
+
+</html>
